@@ -17,7 +17,7 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <memory/paddr.h>
+#include <memory/vaddr.h>
 #include "sdb.h"
 
 static int is_batch_mode = false;
@@ -92,15 +92,17 @@ static int cmd_x(char *args) {
   char *addr_ = strtok(NULL, " ");
 
   int num = 0;
-  paddr_t addr;
+  vaddr_t addr;
   sscanf(arg, "%d", &num);
   sscanf(addr_, "%x", &addr);
+  int tmp = num;
 
-  for (int i = 0; i < num; i++) {
-    printf("0x%08x: ", addr);
-    for (int j = 0; j < 4; j++) {
-      printf("0x%08x ", paddr_read(addr += 4, 4));
+  for (int i = 0; i < (num + 3) / 4; i++) {
+    printf("\033[34m0x%08x: \033[0m", addr);
+    for (int j = 0; j < (tmp > 4 ? 4 : tmp); j++) {
+      printf("0x%08x ", vaddr_read(addr += 4, 4));
     }
+    tmp -= 4;
     puts("");
   }
   return 0;

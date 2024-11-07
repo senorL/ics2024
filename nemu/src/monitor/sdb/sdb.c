@@ -17,6 +17,7 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <memory/paddr.h>
 #include "sdb.h"
 
 static int is_batch_mode = false;
@@ -85,6 +86,26 @@ static int cmd_info(char *args) {
   }
   return 0;
 }
+
+static int cmd_x(char *args) {
+  char *arg = strtok(NULL, " ");
+  char *addr_ = strtok(NULL, " ");
+
+  int num = 0;
+  paddr_t addr;
+  sscanf(arg, "%d", &num);
+  sscanf(addr_, "%x", &addr);
+
+  for (int i = 0; i < num; i++) {
+    printf("0x%08x: ", addr);
+    for (int j = 0; j < 4; j++) {
+      printf("0x%08x ", paddr_read(addr += 4, 4));
+    }
+    puts("");
+  }
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -97,6 +118,7 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
   { "si", "Single-Step execution", cmd_si }, 
   { "info", "Print program state", cmd_info},
+  { "x", "Scan memory", cmd_x},
 
   /* TODO: Add more commands */
 

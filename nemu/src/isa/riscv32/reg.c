@@ -27,7 +27,7 @@ void isa_reg_display() {
   uint64_t reg_len = sizeof(regs) / sizeof(regs[0]);
 
   for (int i = 0; i < reg_len; i++) {
-    printf("%-10s 0x%08x %10d\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
+    printf("%-10s 0x%08x %10d\n", regs[i], gpr(i), gpr(i));
   }
 
 }

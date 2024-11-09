@@ -80,6 +80,7 @@ static Token tokens[32] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
+  
   int position = 0;
   int i;
   regmatch_t pmatch;
@@ -104,6 +105,7 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
+
           case TK_NOTYPE:
             break;
           case '+': case '-': case '*': case '/': case TK_LP: case TK_RP:
@@ -122,7 +124,7 @@ static bool make_token(char *e) {
             break;
 
           default: 
-            printf("%s\n", e[position]);
+            printf("%c\n", e[position]);
             break;
         }
 
@@ -139,6 +141,86 @@ static bool make_token(char *e) {
   return true;
 }
 
+int op_priority(int r) {
+	switch(r) {
+		case '+': case '-':
+			return 1;
+		case '*': case '/':
+			return 2;
+		default:
+			return 10;
+}
+}
+
+int primary_operator(int p, int q) {
+	int op = 0;
+	int tmp_compare = 10;
+	for (int i = p; i <= q; i++) {
+		if (tokens[i].type == TK_LP) {
+			while(tokens[i].type != TK_RP) {
+				i++;
+			}}
+		if (tokens[i].type != '+' && tokens[i].type != '-' && tokens[i].type != '*' && tokens[i].type != '/')
+			continue;
+		
+		if (tmp_compare >= op_priority(tokens[i].type)) {
+				op = i;
+				tmp_compare = op_priority(tokens[i].type);
+		}
+		}
+		return op;
+}
+
+
+int check_parentheses(int p, int q) {
+    if (tokens[p].type != TK_LP || tokens[q].type != TK_RP) {
+        return 0;
+    }
+    int num = 0;
+    for (int i = p; i <= q; i++) {
+        if (tokens[i].type == TK_LP) num++;
+        if (tokens[i].type == TK_RP) num--;
+        if (i != q && num == 0) {
+            return 0;
+        }
+    }
+    if (num != 0) {
+      assert(0);
+    }
+    return 1;
+}
+
+
+word_t eval(int p, int q) {
+  if (p > q) {
+    printf("\np > q! p: %d q: %d\n", p, q);
+    assert(0);
+  }
+  else if (p == q) {
+    word_t num;
+    sscanf(tokens[p].str, "%u", &num);
+    return num;
+  }
+
+  else if (check_parentheses(p, q) == 1) {
+    return eval(p + 1, q - 1);
+  }
+
+  else {
+    int op = primary_operator(p, q);
+    word_t val1 = eval(p, op - 1);
+    word_t val2 = eval(op + 1, q);
+
+    switch (tokens[op].type) {
+      case '+': printf ("%u\n", val1 + val2); return val1 + val2;
+      case '-': printf ("%u\n", val1 - val2); return val1 - val2;
+      case '*': printf ("%u\n", val1 * val2); return val1 * val2;
+      case '/': printf ("%u\n", val1 / val2); return val1 / val2;
+      default: assert(0);
+    }
+  }
+
+}
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
@@ -147,7 +229,10 @@ word_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  int p = 0;
+  int q = nr_token - 1; 
+  word_t res = 0;
+  res = eval(p, q);
 
-  return 0;
+  return res;
 }

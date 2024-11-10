@@ -19,6 +19,7 @@ void init_monitor(int, char *[]);
 void am_init_monitor();
 void engine_start();
 int is_exit_status_bad();
+word_t expr(char *e, bool *success);
 
 int main(int argc, char *argv[]) {
   /* Initialize the monitor. */
@@ -27,7 +28,24 @@ int main(int argc, char *argv[]) {
 #else
   init_monitor(argc, argv);
 #endif
+  FILE *fp = fopen("/home/senor/ics2024/nemu/tools/gen-expr/input", "r");
+  assert(fp != NULL);
 
+  char e[65536];
+  uint32_t num = 0;
+  while(fgets(e, sizeof(e), fp)) {
+    e[strcspn(e, "\n")] = '\0';
+    char *arg = strtok(e, " ");
+    sscanf(arg, "%u", &num);
+    char *expr_str = strtok(NULL, "");
+    puts("helo");
+    bool success = true;
+    if (num != expr(expr_str, &success)) {
+      printf("num: %u\nexpr: %s\nret: %u\n", num, expr_str, expr(expr_str, &success));
+      assert(0);
+    }
+  }
+  fclose(fp);
   /* Start engine. */
   engine_start();
 

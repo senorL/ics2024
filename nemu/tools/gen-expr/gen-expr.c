@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < loop; i ++) {
     memset(buf, '\0', sizeof(buf));
     buf_pos = 0;
-    gen_rand_expr(10);
+    gen_rand_expr(4);
     buf[buf_pos + 1] = '\0';
 
     sprintf(code_buf, code_format, buf);

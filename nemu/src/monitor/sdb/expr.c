@@ -114,7 +114,8 @@ static bool make_token(char *e) {
           case TK_NUM:
             tokens[nr_token].type = rules[i].token_type;
             if (substr_len >= 32) {
-              assert(0);
+              strncpy(tokens[nr_token].str, substr_start, 31);
+              tokens[nr_token].str[31] = '\0';
             }
             else {
               strncpy(tokens[nr_token].str, substr_start, substr_len);
@@ -154,10 +155,16 @@ int op_priority(int r) {
 int primary_operator(int p, int q) {
 	int op = 0;
 	int tmp_compare = 10;
+  int num = 0;
 	for (int i = p; i <= q; i++) {
 		if (tokens[i].type == TK_LP) {
-			while(tokens[i].type != TK_RP) {
+      num++;
+			while(num != 0) {
 				i++;
+        if (tokens[i].type == TK_LP)
+          num++;
+        else if (tokens[i].type == TK_RP)
+          num--;
 			}}
 		if (tokens[i].type != '+' && tokens[i].type != '-' && tokens[i].type != '*' && tokens[i].type != '/')
 			continue;
@@ -176,17 +183,18 @@ int check_parentheses(int p, int q) {
         return 0;
     }
     int num = 0;
+    int flag = 0;
     for (int i = p; i <= q; i++) {
         if (tokens[i].type == TK_LP) num++;
         if (tokens[i].type == TK_RP) num--;
         if (i != q && num == 0) {
-            return 0;
+          flag = 1;
         }
     }
     if (num != 0) {
       assert(0);
     }
-    return 1;
+    return flag == 0 ? 1 : 2;
 }
 
 
@@ -211,10 +219,18 @@ word_t eval(int p, int q) {
     word_t val2 = eval(op + 1, q);
 
     switch (tokens[op].type) {
-      case '+': printf ("%u\n", val1 + val2); return val1 + val2;
-      case '-': printf ("%u\n", val1 - val2); return val1 - val2;
-      case '*': printf ("%u\n", val1 * val2); return val1 * val2;
-      case '/': printf ("%u\n", val1 / val2); return val1 / val2;
+      case '+': 
+        //printf ("%u\n", val1 + val2); 
+        return val1 + val2;
+      case '-': 
+        //printf ("%u\n", val1 - val2); 
+        return val1 - val2;
+      case '*': 
+        //printf ("%u\n", val1 * val2); 
+        return val1 * val2;
+      case '/': 
+        //printf ("%u\n", val1 / val2); 
+        return val1 / val2;
       default: assert(0);
     }
   }

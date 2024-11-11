@@ -47,7 +47,7 @@ static struct rule {
   {"\\)", TK_RP},
   {"0x[0-9A-Fa-f]+", TK_HEX},
   {"[0-9]+", TK_NUM},
-  {"$[$a-z][0-9a-z]+", TK_REG},
+  {"\\$[$a-z][0-9a-z]+", TK_REG},
   {"!=", TK_NEQ},
   {"&&", TK_AND},
   // {"\\*", TK_POINT},
@@ -113,7 +113,7 @@ static bool make_token(char *e) {
 
           case TK_NOTYPE:
             break;
-          case '+': case '-': case '*': case '/': case TK_LP: case TK_RP: case TK_NEQ: case TK_AND:
+          case '+': case '-': case '*': case '/': case TK_LP: case TK_RP: case TK_NEQ: case TK_AND: case TK_EQ:
             tokens[nr_token++].type = rules[i].token_type;
             break;
           case TK_NUM: case TK_HEX:
@@ -131,8 +131,8 @@ static bool make_token(char *e) {
           case TK_REG:
             tokens[nr_token].type = rules[i].token_type;
             bool success = true;
-            char reg_name[10];
-            strncpy(reg_name, substr_start, substr_len);
+            char reg_name[10] = "\0";
+            strncpy(reg_name, substr_start + 1, substr_len);
             uint32_t value = isa_reg_str2val(reg_name, &success);
             sprintf(tokens[nr_token].str, "%u", value);
             nr_token++;
@@ -226,7 +226,13 @@ word_t eval(int p, int q) {
   }
   else if (p == q) {
     word_t num;
-    sscanf(tokens[p].str, "%u", &num);
+    if (tokens[p - 1].type == TK_DEREF) {
+      sscanf(tokens[p].str, "%x", &num);
+    }
+    else {
+      sscanf(tokens[p].str, "%u", &num);
+    }
+
     return num;
   }
 
@@ -237,23 +243,19 @@ word_t eval(int p, int q) {
   else {
     int op = primary_operator(p, q);
     word_t val1 = 0;
-    if (op != TK_MINUS && op != TK_DEREF){ 
+    if (tokens[op].type != TK_MINUS && tokens[op].type != TK_DEREF){ 
       val1 = eval(p, op - 1);
     }
     word_t val2 = eval(op + 1, q);
 
     switch (tokens[op].type) {
       case '+': 
-        //printf ("%u\n", val1 + val2); 
         return val1 + val2;
       case '-': 
-        //printf ("%u\n", val1 - val2); 
         return val1 - val2;
       case '*': 
-        //printf ("%u\n", val1 * val2); 
         return val1 * val2;
       case '/': 
-        //printf ("%u\n", val1 / val2); 
         return val1 / val2;
       case TK_AND:
         return val1 && val2;

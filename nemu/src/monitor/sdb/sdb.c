@@ -100,7 +100,8 @@ static int cmd_x(char *args) {
   for (int i = 0; i < (num + 3) / 4; i++) {
     printf("\033[34m0x%08x: \033[0m", addr);
     for (int j = 0; j < (tmp > 4 ? 4 : tmp); j++) {
-      printf("0x%08x ", vaddr_read(addr += 4, 4));
+      printf("0x%08x ", vaddr_read(addr, 4));
+      addr += 4;
     }
     tmp -= 4;
     puts("");

@@ -14,15 +14,15 @@
 ***************************************************************************************/
 
 #include <isa.h>
-
+#include <memory/vaddr.h>
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
 #include <string.h>
-
 enum {
   TK_NOTYPE = 256, TK_EQ, TK_LP, TK_RP, TK_NUM,
+  TK_HEX, TK_REG, TK_NEQ, TK_AND, TK_DEREF, TK_MINUS,
 
   /* TODO: Add more token types */
 
@@ -45,7 +45,12 @@ static struct rule {
   {"/", '/'},
   {"\\(", TK_LP},
   {"\\)", TK_RP},
+  {"0x[0-9A-Fa-f]+", TK_HEX},
   {"[0-9]+", TK_NUM},
+  {"$[$a-z][0-9a-z]+", TK_REG},
+  {"!=", TK_NEQ},
+  {"&&", TK_AND},
+  // {"\\*", TK_POINT},
 
 
 };
@@ -108,10 +113,10 @@ static bool make_token(char *e) {
 
           case TK_NOTYPE:
             break;
-          case '+': case '-': case '*': case '/': case TK_LP: case TK_RP:
+          case '+': case '-': case '*': case '/': case TK_LP: case TK_RP: case TK_NEQ: case TK_AND:
             tokens[nr_token++].type = rules[i].token_type;
             break;
-          case TK_NUM:
+          case TK_NUM: case TK_HEX:
             tokens[nr_token].type = rules[i].token_type;
             if (substr_len >= 32) {
               strncpy(tokens[nr_token].str, substr_start, 31);
@@ -122,6 +127,15 @@ static bool make_token(char *e) {
               tokens[nr_token].str[substr_len] = '\0';
               nr_token++;
             }
+            break;
+          case TK_REG:
+            tokens[nr_token].type = rules[i].token_type;
+            bool success = true;
+            char reg_name[10];
+            strncpy(reg_name, substr_start, substr_len);
+            uint32_t value = isa_reg_str2val(reg_name, &success);
+            sprintf(tokens[nr_token].str, "%u", value);
+            nr_token++;
             break;
 
           default: 
@@ -144,9 +158,15 @@ static bool make_token(char *e) {
 int op_priority(int r) {
 	switch(r) {
 		case '+': case '-':
-			return 1;
+			return 3;
 		case '*': case '/':
-			return 2;
+			return 4;
+    case TK_DEREF: case TK_MINUS:
+      return 5;
+    case TK_EQ: case TK_NEQ:
+      return 2;
+    case TK_AND:
+      return 1;
 		default:
 			return 10;
 }
@@ -166,12 +186,13 @@ int primary_operator(int p, int q) {
         else if (tokens[i].type == TK_RP)
           num--;
 			}}
-		if (tokens[i].type != '+' && tokens[i].type != '-' && tokens[i].type != '*' && tokens[i].type != '/')
+    int op_num = op_priority(tokens[i].type);
+		if (op_num == 10)
 			continue;
 		
-		if (tmp_compare >= op_priority(tokens[i].type)) {
+		if (tmp_compare >= op_num) {
 				op = i;
-				tmp_compare = op_priority(tokens[i].type);
+				tmp_compare = op_num;
 		}
 		}
 		return op;
@@ -215,7 +236,10 @@ word_t eval(int p, int q) {
 
   else {
     int op = primary_operator(p, q);
-    word_t val1 = eval(p, op - 1);
+    word_t val1 = 0;
+    if (op != TK_MINUS && op != TK_DEREF){ 
+      val1 = eval(p, op - 1);
+    }
     word_t val2 = eval(op + 1, q);
 
     switch (tokens[op].type) {
@@ -231,16 +255,43 @@ word_t eval(int p, int q) {
       case '/': 
         //printf ("%u\n", val1 / val2); 
         return val1 / val2;
+      case TK_AND:
+        return val1 && val2;
+      case TK_EQ:
+        return val1 == val2;
+      case TK_NEQ:
+        return val1 != val2;
+      case TK_DEREF:
+        return vaddr_read(val2, 4);
+      case TK_MINUS:
+        return -val2;
       default: assert(0);
     }
   }
 
 }
 
+int certain_type(int type) {
+  if (type == TK_LP || type == TK_EQ || type == TK_NEQ || type == TK_AND 
+      || type == '+' || type == '-' || type == '*' || type == '/')
+      return 1;
+  else if (type == TK_NUM || type == TK_HEX || type == TK_REG || type == TK_RP)
+      return 0;
+  return 0;
+}
+
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
     return 0;
+  }
+
+
+  for (int i = 0; i < nr_token; i ++) {
+    if (tokens[i].type == '*' && (i == 0 || certain_type(tokens[i - 1].type) == 1))
+      tokens[i].type = TK_DEREF;
+    if (tokens[i].type == '-' && (i == 0 || certain_type(tokens[i - 1].type) == 1))
+      tokens[i].type = TK_MINUS;
   }
 
   /* TODO: Insert codes to evaluate the expression. */

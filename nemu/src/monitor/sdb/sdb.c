@@ -77,7 +77,7 @@ static int cmd_info(char *args) {
       isa_reg_display();
     }
     else if (strcmp(arg, "w") == 0) {
-      assert(0);
+      print_watchpoint();
     }
     else {
       printf("Unknown command '%s'\n", arg);
@@ -119,6 +119,20 @@ static int cmd_p(char *args) {
 
 }
 
+static int cmd_w(char *args) {
+  char *arg = strtok(NULL, "");
+  new_watchpoint(arg);
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  char *arg = strtok(NULL, " ");
+
+  int no = 0;
+  sscanf(arg, "%d", &no);
+  delete_watchpoint(no);
+  return 0;
+}
 static int cmd_help(char *args);
 
 static struct {
@@ -133,6 +147,8 @@ static struct {
   { "info", "Print program state", cmd_info},
   { "x", "Scan memory", cmd_x},
   { "p", "expression evaluation", cmd_p},
+  { "w", "set watchpoint", cmd_w},
+  { "d", "delete watchpoint", cmd_d},
 
   /* TODO: Add more commands */
 

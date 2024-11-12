@@ -20,6 +20,9 @@
 typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
+  uint32_t old_value;
+  uint32_t new_value;
+  char *wp_var;
 
   /* TODO: Add more members if necessary */
 
@@ -41,3 +44,86 @@ void init_wp_pool() {
 
 /* TODO: Implement the functionality of watchpoint */
 
+WP* new_wp() {
+  if (free_ == NULL) {
+    assert(0);
+  }
+
+  WP *wp = free_;
+  free_ = free_->next;
+
+  if (head == NULL) {
+    head = wp;
+  }
+  else {
+    WP *last = head;
+    while(last->next != NULL) {
+      last = last->next;
+    }
+    last->next = wp;
+  }
+
+  wp->next = NULL;
+  return wp;
+}
+
+void free_wp(int no) {
+  if (head == NULL) {
+    assert(0);
+  }
+
+  WP *p = NULL;
+  WP *current = head;
+
+  while(current != NULL && current->NO != no) {
+    p = current;
+    current = current->next;
+  }
+
+  if (current == NULL) {
+    puts("not found!");
+    assert(0);
+  }
+
+  if (p == NULL) {
+    head = current->next;
+  } else {
+    p->next = current->next;
+  }
+
+
+  if (free_ == NULL) {
+    free_ = current;
+  }
+  else {
+    WP *last = free_;
+    while (last->next != NULL) {
+      last = last->next;
+    }
+    last->next = current;
+  }
+  current->next = NULL;
+
+}
+
+void new_watchpoint(char *e) {
+  WP *wp = new_wp();
+  wp->wp_var = e;
+  bool success = true;
+  wp->old_value = expr(e, &success);
+  wp->new_value = wp->old_value;
+  printf("New watchpoint %d: %s\n", wp->NO, wp->wp_var);
+}
+
+void print_watchpoint() {
+  printf("Num Address What\n");
+  WP *p = head;
+  while(p) {
+    printf("%d %x %s\n", p->NO, vaddr_read(expr(p->wp_var), 4), p->wp_var);
+  }
+
+}
+
+void delete_watchpoint(int no) {
+  free_wp(no);
+}

@@ -90,7 +90,12 @@ void free_wp(int no) {
   } else {
     p->next = current->next;
   }
-
+  
+  //释放内存
+  if (current->wp_var != NULL) {
+    free(current->wp_var);
+    current->wp_var = NULL;
+  }
 
   if (free_ == NULL) {
     free_ = current;
@@ -108,7 +113,7 @@ void free_wp(int no) {
 
 void new_watchpoint(char *e) {
   WP *wp = new_wp();
-  wp->wp_var = e;
+  wp->wp_var = strdup(e);
   bool success = true;
   wp->old_value = expr(e, &success);
   wp->new_value = wp->old_value;
@@ -116,12 +121,14 @@ void new_watchpoint(char *e) {
 }
 
 void print_watchpoint() {
-  printf("Num What\n");
   WP *p = head;
   if (p == NULL){
     puts("No watchpoint!");
-  }
-  while(p->next != NULL) {
+    return;
+  } 
+  printf("Num What\n");
+
+  while(p != NULL) {
     printf("%d %s\n", p->NO, p->wp_var);
     p = p->next;
   }
@@ -133,12 +140,12 @@ void delete_watchpoint(int no) {
 }
 
 
-bool check_watchpoint() {
+void check_watchpoint() {
   WP *wp = head;
   if (wp == NULL) {
-    return false;
+    return;
   }
-  while (wp->next != NULL) {
+  while (wp != NULL) {
     bool success = true;
     uint32_t tmp_value = expr(wp->wp_var, &success);
     if (wp->old_value != tmp_value) {
@@ -147,9 +154,10 @@ bool check_watchpoint() {
       printf("Old value: %u\n", wp->old_value);
       printf("New value: %u\n", wp->new_value);
       wp->old_value = wp->new_value;
-      return false;
+      nemu_state.state = NEMU_STOP;
+      return;
     }
     wp = wp->next;
   }
-  return true;
+  return;
 }

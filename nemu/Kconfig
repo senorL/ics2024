@@ -151,6 +151,13 @@ config ITRACE_COND
   string "Only trace instructions when the condition is true"
   default "true"
 
+config WATCHPOINT
+  depends on ITRACE
+  bool "Enable watchpoint"
+  default n
+  help
+    Enable watchpoint to monitor specific memory addresses.
+
 
 config DIFFTEST
   depends on TARGET_NATIVE_ELF

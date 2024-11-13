@@ -24,6 +24,9 @@ static int is_batch_mode = false;
 
 void init_regex();
 void init_wp_pool();
+void new_watchpoint(char *e);
+void print_watchpoint();
+void delete_watchpoint(int no);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {

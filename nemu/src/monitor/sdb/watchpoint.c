@@ -116,14 +116,40 @@ void new_watchpoint(char *e) {
 }
 
 void print_watchpoint() {
-  printf("Num Address What\n");
+  printf("Num What\n");
   WP *p = head;
-  while(p) {
-    printf("%d %x %s\n", p->NO, vaddr_read(expr(p->wp_var), 4), p->wp_var);
+  if (p == NULL){
+    puts("No watchpoint!");
+  }
+  while(p->next != NULL) {
+    printf("%d %s\n", p->NO, p->wp_var);
+    p = p->next;
   }
 
 }
 
 void delete_watchpoint(int no) {
   free_wp(no);
+}
+
+
+bool check_watchpoint() {
+  WP *wp = head;
+  if (wp == NULL) {
+    return false;
+  }
+  while (wp->next != NULL) {
+    bool success = true;
+    uint32_t tmp_value = expr(wp->wp_var, &success);
+    if (wp->old_value != tmp_value) {
+      wp->new_value = tmp_value;
+      printf("Watchpoint %d: %s\n", wp->NO, wp->wp_var);
+      printf("Old value: %u\n", wp->old_value);
+      printf("New value: %u\n", wp->new_value);
+      wp->old_value = wp->new_value;
+      return false;
+    }
+    wp = wp->next;
+  }
+  return true;
 }

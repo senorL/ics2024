@@ -61,3 +61,9 @@ else
 # Include rules to build NEMU
 include $(NEMU_HOME)/scripts/native.mk
 endif
+
+count:
+	@echo "Total lines of code:"
+	@find ./ -type f \( -name "*.c" -o -name "*.h" \) | xargs cat | wc -l
+	@echo "Total non-empty lines of code:"
+	@find ./ -type f \( -name "*.c" -o -name "*.h" \) | xargs cat | grep -v '^$$' | wc -l

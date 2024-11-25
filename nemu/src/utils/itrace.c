@@ -27,12 +27,12 @@ void add_iring(Decode *s) {
 void iring_trace() {
     if (buf_idex == 0) return;
     for (int i = 0; i < buf_idex - 1; i++) {
-        printf("    %s\n", iringbuf[i]);
+        printf("\t%s\n", iringbuf[i]);
     }
     printf("\033[1;31m--> %s\033[0m\n", iringbuf[buf_idex - 1]);
 
     for (int i = buf_idex; i < IRINGBUF_NUM; i++) {
-        printf("    %s\n", iringbuf[i]);
+        printf("\t%s\n", iringbuf[i]);
     }
 }
 

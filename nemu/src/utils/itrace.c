@@ -36,5 +36,11 @@ void iring_trace() {
     }
 }
 
-
+void print_addr(vaddr_t addr, char sign) {
+    if (sign == 'r')
+        printf("Read ");
+    else 
+        printf("Write ");
+    printf("Addr: 08%08x    %d\n", addr, addr);
+}
 

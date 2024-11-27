@@ -25,6 +25,7 @@ $(BINARY):: compile_git
 # Some convenient rules
 
 override ARGS ?= --log=$(BUILD_DIR)/nemu-log.txt
+override ARGS += --elf $(patsubst %.bin, %.elf, $(IMG))
 override ARGS += $(ARGS_DIFF)
 override ARGS += --batch
 

@@ -1,10 +1,21 @@
 #include <common.h>
 #include <cpu/decode.h>
+#include <elf.h>
 
 #define IRINGBUF_NUM 16
+#define MAX_INST 200
+
+Elf32_Sym *read_symbol();
+char *read_string();
+
+Elf32_Sym *symbol_table = NULL;
+char *string_table = NULL;
 
 char iringbuf[IRINGBUF_NUM][128];
 int buf_idex;
+
+char ftrace[MAX_INST][128];
+int ftrace_idex = 0;
 
 void init_iring() {
     buf_idex = 0;
@@ -44,3 +55,39 @@ void print_addr(vaddr_t addr, char sign) {
     printf("Addr: 08%08x    %d\n", addr, addr);
 }
 
+void init_ftrace() {
+    symbol_table = read_symbol();
+    string_table = read_string();
+}
+// 我们可以在函数调用指令中记录目标地址, 表示将要调用某个函数; 然后在函数返回指令中记录当前PC, 表示将要从PC所在的函数返回. 
+void ftrace_call(Decode *s) {
+    vaddr_t call_pc = s->dnpc;
+    char *p = ftrace[ftrace_idex];
+    p += snprintf(p, 128, FMT_WORD ":", s->pc);
+
+    p += "call";
+
+    for (int i = 0; i < symbol_table->st_size; i++) {
+        if (symbol_table[i].st_info == STT_FUNC && (call_pc >= symbol_table->st_value) && (call_pc < (symbol_table->st_value + symbol_table->st_size))) {
+           p += snprintf(p, 128 - sizeof(p), "%s", string_table[symbol_table[i].st_name]); 
+        }
+    }
+
+}
+
+void ftrace_ret(Decode *s) {
+    vaddr_t ret_pc = s->pc;
+    char *p = ftrace[ftrace_idex];
+    p += snprintf(p, 128, FMT_WORD ":", s->pc);
+
+    p += "ret";
+
+    for (int i = 0; i < symbol_table->st_size; i++) {
+        if (symbol_table[i].st_info == STT_FUNC && (ret_pc >= symbol_table->st_value) && (ret_pc < (symbol_table->st_value + symbol_table->st_size))) {
+           p += snprintf(p, 128 - sizeof(p), "%s", string_table[symbol_table[i].st_name]); 
+        }
+    }
+
+
+     
+}

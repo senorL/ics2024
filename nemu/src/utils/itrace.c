@@ -59,35 +59,44 @@ void init_ftrace() {
     symbol_table = read_symbol();
     string_table = read_string();
 }
-// 我们可以在函数调用指令中记录目标地址, 表示将要调用某个函数; 然后在函数返回指令中记录当前PC, 表示将要从PC所在的函数返回. 
-void ftrace_call(Decode *s) {
-    vaddr_t call_pc = s->dnpc;
-    char *p = ftrace[ftrace_idex];
-    p += snprintf(p, 128, FMT_WORD ":", s->pc);
 
-    p += "call";
+void ftrace_call(vaddr_t pc) {
+    vaddr_t call_pc = pc;
+    char *p = ftrace[ftrace_idex];
+    p += snprintf(p, 128, FMT_WORD ":", pc);
+
+    p = strcat(p, "call");
 
     for (int i = 0; i < symbol_table->st_size; i++) {
         if (symbol_table[i].st_info == STT_FUNC && (call_pc >= symbol_table->st_value) && (call_pc < (symbol_table->st_value + symbol_table->st_size))) {
-           p += snprintf(p, 128 - sizeof(p), "%s", string_table[symbol_table[i].st_name]); 
+           p += snprintf(p, 128 - sizeof(p), "%d", string_table[symbol_table[i].st_name]); 
         }
     }
+
+    ftrace_idex++;
 
 }
 
-void ftrace_ret(Decode *s) {
-    vaddr_t ret_pc = s->pc;
+void ftrace_ret(vaddr_t pc) {
+    vaddr_t ret_pc = pc;
     char *p = ftrace[ftrace_idex];
-    p += snprintf(p, 128, FMT_WORD ":", s->pc);
+    p += snprintf(p, 128, FMT_WORD ":", pc);
 
-    p += "ret";
+    p = strcat(p, "ret");
 
     for (int i = 0; i < symbol_table->st_size; i++) {
         if (symbol_table[i].st_info == STT_FUNC && (ret_pc >= symbol_table->st_value) && (ret_pc < (symbol_table->st_value + symbol_table->st_size))) {
-           p += snprintf(p, 128 - sizeof(p), "%s", string_table[symbol_table[i].st_name]); 
+           p += snprintf(p, 128 - sizeof(p), "%d", string_table[symbol_table[i].st_name]); 
         }
     }
 
-
+    ftrace_idex++;
      
+}
+
+void print_ftrace() {
+    for (int i = 0; i < ftrace_idex; i++) {
+        printf("%s\n", ftrace[i]);
+    }
+
 }

@@ -24,6 +24,7 @@ static int is_batch_mode = false;
 
 void init_regex();
 void init_iring();
+void init_ftrace();
 void init_wp_pool();
 void new_watchpoint(char *e);
 void print_watchpoint();
@@ -232,6 +233,7 @@ void init_sdb() {
   /*Initialize the iringbuf.*/
   init_iring();
 
+  init_ftrace();
   /* Initialize the watchpoint pool. */
   init_wp_pool();
 }

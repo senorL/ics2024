@@ -33,6 +33,7 @@ static bool g_print_step = false;
 void device_update();
 bool check_watchpoint();
 void iring_trace();
+void print_ftrace();
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
@@ -86,6 +87,7 @@ static void execute(uint64_t n) {
 }
 
 static void statistic() {
+  print_ftrace();
   IFNDEF(CONFIG_TARGET_AM, setlocale(LC_NUMERIC, ""));
 #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64
   Log("host time spent = " NUMBERIC_FMT " us", g_timer);

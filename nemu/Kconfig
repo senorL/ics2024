@@ -156,6 +156,11 @@ config MITRACE
   bool "Enable memory tracer"
   default "false"
 
+config FTRACE
+  depends on TRACE
+  bool "Enable function tracer"
+  default "false"
+
 config WATCHPOINT
   depends on ITRACE
   bool "Enable watchpoint"

@@ -3,10 +3,11 @@
 #include <elf.h>
 
 #define IRINGBUF_NUM 16
-#define MAX_INST 200
+#define MAX_INST 300
 
 Elf32_Sym *read_symbol();
 char *read_string();
+int header_num(char *type);
 
 Elf32_Sym *symbol_table = NULL;
 char *string_table = NULL;
@@ -16,6 +17,8 @@ int buf_idex;
 
 char ftrace[MAX_INST][128];
 int ftrace_idex = 0;
+int symbol_size;
+int string_size;
 
 void init_iring() {
     buf_idex = 0;
@@ -58,45 +61,45 @@ void print_addr(vaddr_t addr, char sign) {
 void init_ftrace() {
     symbol_table = read_symbol();
     string_table = read_string();
+
+    symbol_size = header_num("sym");
+    printf("%d", symbol_size);
+    string_size = header_num("str");
+
 }
 
-void ftrace_call(vaddr_t pc) {
-    vaddr_t call_pc = pc;
+void ftrace_call(Decode *s) {
+    vaddr_t call_pc = s->dnpc;
     char *p = ftrace[ftrace_idex];
-    p += snprintf(p, 128, FMT_WORD ":", pc);
+    p += snprintf(p, 128, FMT_WORD ":", s->pc);
 
-    p = strcat(p, "call");
+    p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "call");
 
-    for (int i = 0; i < symbol_table->st_size; i++) {
-        if (symbol_table[i].st_info == STT_FUNC && (call_pc >= symbol_table->st_value) && (call_pc < (symbol_table->st_value + symbol_table->st_size))) {
-           p += snprintf(p, 128 - sizeof(p), "%d", string_table[symbol_table[i].st_name]); 
+    for (int i = 0; i < symbol_size; i++) {
+        if (symbol_table[i].st_info == STT_FUNC && (call_pc >= symbol_table[i].st_value) && (call_pc < (symbol_table[i].st_value + symbol_table[i].st_size))) {
+            puts("hello!!!\n");
+           p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "%d", string_table[symbol_table[i].st_name]); 
         }
     }
-
+    printf("%s\n", ftrace[ftrace_idex]);
     ftrace_idex++;
 
 }
 
-void ftrace_ret(vaddr_t pc) {
-    vaddr_t ret_pc = pc;
+void ftrace_ret(Decode *s) {
+    vaddr_t ret_pc = s->pc;
     char *p = ftrace[ftrace_idex];
-    p += snprintf(p, 128, FMT_WORD ":", pc);
+    p += snprintf(p, 128, FMT_WORD ":", s->pc);
+    
+    p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "ret");
 
-    p = strcat(p, "ret");
-
-    for (int i = 0; i < symbol_table->st_size; i++) {
-        if (symbol_table[i].st_info == STT_FUNC && (ret_pc >= symbol_table->st_value) && (ret_pc < (symbol_table->st_value + symbol_table->st_size))) {
-           p += snprintf(p, 128 - sizeof(p), "%d", string_table[symbol_table[i].st_name]); 
+    for (int i = 0; i < symbol_size; i++) {
+        if (symbol_table[i].st_info == STT_FUNC && (ret_pc >= symbol_table[i].st_value) && (ret_pc < (symbol_table[i].st_value + symbol_table[i].st_size))) {
+           p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "%d", string_table[symbol_table[i].st_name]); 
         }
     }
 
+    printf("%s\n", ftrace[ftrace_idex]);
     ftrace_idex++;
      
-}
-
-void print_ftrace() {
-    for (int i = 0; i < ftrace_idex; i++) {
-        printf("%s\n", ftrace[i]);
-    }
-
 }

@@ -22,8 +22,8 @@
 #define Mr vaddr_read
 #define Mw vaddr_write
 void add_iring(Decode *s);
-void ftrace_call(vaddr_t pc);
-void ftrace_ret(vaddr_t pc);
+void ftrace_call(Decode *s);
+void ftrace_ret(Decode *s);
 
 enum {
   TYPE_I, TYPE_U, TYPE_S, TYPE_J, TYPE_R, TYPE_B,
@@ -74,7 +74,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J,
     R(rd) = s->pc + 4; 
     s->dnpc = s->pc + imm;
-    ftrace_call(s->dnpc);
+    ftrace_call(s);
   );
   INSTPAT("??????? ????? ????? 010 ????? 01000 11", sw     , S, Mw(src1 + imm, 4, src2)); 
   INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, Mw(src1 + imm, 1, src2)); 
@@ -82,9 +82,9 @@ static int decode_exec(Decode *s) {
     s->dnpc = (src1 + imm) & ~1; 
     R(rd) = s->pc + 4;
     if (rd == 1) { 
-      ftrace_call(s->dnpc);
+      ftrace_call(s);
     } else if (rd == 0 && src1 == R(1)){
-      ftrace_ret(s->dnpc);
+      ftrace_ret(s);
     }
   );
   INSTPAT("??????? ????? ????? 010 ????? 00000 11", lw     , I, R(rd) = Mr(src1 + imm, 4));

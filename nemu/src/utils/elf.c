@@ -3,7 +3,7 @@
 
 FILE *elf_fp = NULL;
 Elf32_Shdr *symtab_header = NULL;
-Elf32_Shdr *strlab_header = NULL;
+Elf32_Shdr *strtab_header = NULL;
 void read_elf();
 
 void init_elf(const char *elf_file) {
@@ -32,9 +32,18 @@ void read_elf() {
             symtab_header = &section_headers[i];
         }
         else if (section_headers[i].sh_type == SHT_STRTAB && i != elf_header.e_shstrndx) {
-            strlab_header = &section_headers[i];
+            strtab_header = &section_headers[i];
         }
     }
+}
+int header_num(char *type) {
+    if (strcmp(type, "str") == 0) {
+        return strtab_header->sh_size;
+    }
+    else if(strcmp(type, "sym") == 0){
+        return symtab_header->sh_size / symtab_header->sh_entsize;
+    }
+    return -1;
 }
 
 Elf32_Sym *read_symbol() {
@@ -48,12 +57,11 @@ Elf32_Sym *read_symbol() {
 }
 
 char *read_string() {
-    char *string_table = malloc(strlab_header->sh_size);
-    fseek(elf_fp, strlab_header->sh_offset, SEEK_SET);
-    size_t read_size = fread(string_table, strlab_header->sh_size, 1, elf_fp);
+    char *string_table = malloc(strtab_header->sh_size);
+    fseek(elf_fp, strtab_header->sh_offset, SEEK_SET);
+    size_t read_size = fread(string_table, strtab_header->sh_size, 1, elf_fp);
     Assert(read_size == 1, "Failed to read string headers");
 
 
     return string_table;
 }
-

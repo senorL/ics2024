@@ -4,6 +4,7 @@
 FILE *elf_fp = NULL;
 Elf32_Shdr *symtab_header = NULL;
 Elf32_Shdr *strtab_header = NULL;
+Elf32_Shdr *section_headers = NULL;
 void read_elf();
 
 void init_elf(const char *elf_file) {
@@ -21,7 +22,7 @@ void read_elf() {
     size_t read_size = fread(&elf_header, sizeof(Elf32_Ehdr), 1, elf_fp);
     Assert(read_size == 1, "Failed to read ELF headers");
 
-    Elf32_Shdr *section_headers = malloc(elf_header.e_shnum * elf_header.e_shentsize);
+    section_headers = malloc(elf_header.e_shnum * elf_header.e_shentsize);
     fseek(elf_fp, elf_header.e_shoff, SEEK_SET);
     read_size = fread(section_headers, elf_header.e_shentsize, elf_header.e_shnum, elf_fp);
     Assert(read_size == elf_header.e_shnum, "Failed to read section headers");   
@@ -64,4 +65,8 @@ char *read_string() {
 
 
     return string_table;
+}
+
+void clean_section() {
+    free(section_headers);
 }

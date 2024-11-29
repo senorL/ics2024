@@ -11,6 +11,7 @@ int header_num(char *type);
 
 Elf32_Sym *symbol_table = NULL;
 char *string_table = NULL;
+void clean_section();
 
 char iringbuf[IRINGBUF_NUM][128];
 int buf_idex;
@@ -106,4 +107,11 @@ void ftrace_ret(Decode *s) {
     printf("%s\n", ftrace[ftrace_idex]);
     ftrace_idex++;
      
+}
+
+
+void clean_header() {
+    clean_section();
+    free(symbol_table);
+    free(string_table);
 }

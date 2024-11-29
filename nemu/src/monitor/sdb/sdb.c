@@ -233,7 +233,7 @@ void init_sdb() {
   /*Initialize the iringbuf.*/
   init_iring();
 
-  init_ftrace();
+  IFDEF(CONFIG_FTRACE, init_ftrace());
   /* Initialize the watchpoint pool. */
   init_wp_pool();
 }

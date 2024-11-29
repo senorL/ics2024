@@ -19,6 +19,7 @@ char ftrace[MAX_INST][128];
 int ftrace_idex = 0;
 int symbol_size;
 int string_size;
+int space_num = 0;
 
 void init_iring() {
     buf_idex = 0;
@@ -63,7 +64,6 @@ void init_ftrace() {
     string_table = read_string();
 
     symbol_size = header_num("sym");
-    printf("%d", symbol_size);
     string_size = header_num("str");
 
 }
@@ -72,17 +72,18 @@ void ftrace_call(Decode *s) {
     vaddr_t call_pc = s->dnpc;
     char *p = ftrace[ftrace_idex];
     p += snprintf(p, 128, FMT_WORD ":", s->pc);
-
-    p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "call");
-
+    for (int i = 0; i < space_num; i++) {
+        *p++ = ' ';
+    }
+    p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "call ");
     for (int i = 0; i < symbol_size; i++) {
-        if (symbol_table[i].st_info == STT_FUNC && (call_pc >= symbol_table[i].st_value) && (call_pc < (symbol_table[i].st_value + symbol_table[i].st_size))) {
-            puts("hello!!!\n");
-           p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "%d", string_table[symbol_table[i].st_name]); 
+        if (ELF32_ST_TYPE(symbol_table[i].st_info) == STT_FUNC && (call_pc >= symbol_table[i].st_value) && (call_pc < (symbol_table[i].st_value + symbol_table[i].st_size))) {
+           p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "[%s@0x%08x]", &string_table[symbol_table[i].st_name], call_pc); 
         }
     }
     printf("%s\n", ftrace[ftrace_idex]);
     ftrace_idex++;
+    space_num += 2;
 
 }
 
@@ -90,12 +91,15 @@ void ftrace_ret(Decode *s) {
     vaddr_t ret_pc = s->pc;
     char *p = ftrace[ftrace_idex];
     p += snprintf(p, 128, FMT_WORD ":", s->pc);
-    
-    p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "ret");
+    space_num -= 2;
+    for (int i = 0; i < space_num; i++) {
+        *p++ = ' ';
+    }
+    p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "ret ");
 
     for (int i = 0; i < symbol_size; i++) {
-        if (symbol_table[i].st_info == STT_FUNC && (ret_pc >= symbol_table[i].st_value) && (ret_pc < (symbol_table[i].st_value + symbol_table[i].st_size))) {
-           p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "%d", string_table[symbol_table[i].st_name]); 
+        if (ELF32_ST_TYPE(symbol_table[i].st_info) == STT_FUNC && (ret_pc >= symbol_table[i].st_value) && (ret_pc < (symbol_table[i].st_value + symbol_table[i].st_size))) {
+           p += snprintf(p, 128 - (p - ftrace[ftrace_idex]), "[%s@0x%08x]", &string_table[symbol_table[i].st_name], ret_pc); 
         }
     }
 

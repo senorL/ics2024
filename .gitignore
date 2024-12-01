@@ -10,5 +10,5 @@
 !.gitignore
 !init.sh
 /fceux-am
-/am-kernels
+!/am-kernels
 abstract-machine/riscv-tests-am 

@@ -38,7 +38,22 @@ void test_memset() {
   }
 }
 
+void test_memcpy() {
+  int l, r;
+  for (l = 0; l < N; l++) {
+    for (r = l + 1; r <= N; r++) {
+      reset();
+      uint8_t temp[N];
+      memcpy(temp, data, N); 
+      memcpy(data, temp, r - l);
+      check_seq(0, N, 1);
+    }
+  }
+}
+
 int main() {
     test_memset();
+    reset();
+    test_memcpy();
     return 0;
 }

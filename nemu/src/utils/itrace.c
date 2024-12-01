@@ -3,7 +3,7 @@
 #include <elf.h>
 
 #define IRINGBUF_NUM 16
-#define MAX_INST 300
+#define MAX_INST 2000
 
 Elf32_Sym *read_symbol();
 char *read_string();
@@ -69,7 +69,10 @@ void init_ftrace() {
 
 }
 
+
 void ftrace_call(Decode *s) {
+
+
     vaddr_t call_pc = s->dnpc;
     char *p = ftrace[ftrace_idex];
     p += snprintf(p, 128, FMT_WORD ":", s->pc);
@@ -89,6 +92,7 @@ void ftrace_call(Decode *s) {
 }
 
 void ftrace_ret(Decode *s) {
+
     vaddr_t ret_pc = s->pc;
     char *p = ftrace[ftrace_idex];
     p += snprintf(p, 128, FMT_WORD ":", s->pc);

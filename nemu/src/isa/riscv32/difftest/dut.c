@@ -18,7 +18,21 @@
 #include "../local-include/reg.h"
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
-  return false;
+
+  bool tmp = true;
+  for (int i = 0; i < 32; i++) {
+    if (ref_r->gpr[i] != cpu.gpr[i]){
+      tmp = false;
+      break;
+    }
+  }
+  if (ref_r->pc != cpu.pc) {
+    tmp = false;
+  }
+  if (tmp == false) {
+    printf("pc: 0x%08x\n", pc);
+  }
+  return true;
 }
 
 void isa_difftest_attach() {

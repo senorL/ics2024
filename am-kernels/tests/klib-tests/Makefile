@@ -1,4 +1,4 @@
 NAME = test_klibs
-SRCS = write_functions.c
+SRCS = read_functions.c
 include $(AM_HOME)/Makefile
 

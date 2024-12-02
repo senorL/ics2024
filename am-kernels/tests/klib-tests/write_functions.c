@@ -10,6 +10,13 @@ void reset() {
         data[i] = i + 1;
     }
 }
+
+void reset_one() {
+    for (int i = 0; i < N; i++) {
+        data[i] = 1;
+    }
+}
+
 void check_seq(int l, int r, int val) {
   int i;
   for (i = l; i < r; i ++) {
@@ -39,18 +46,19 @@ void test_memset() {
 }
 
 void test_memcpy() {
-  int l, r;
-  for (l = 0; l < N; l++) {
-    for (r = l + 1; r <= N; r++) {
+  for (int l = 0; l < N; l ++) {
+    for (int r = l + 1; r <= N; r ++) {
       reset();
       uint8_t temp[N];
-      memcpy(temp, data, N); 
-      memcpy(data, temp, r - l);
-      check_seq(0, N, 1);
+      memcpy(temp, data, N);
+      reset_one();
+			memcpy(data + l, temp + l, r - l);
+      check_eq(0, l, 1);
+      check_seq(l, r, l + 1);
+      check_eq(r, N, 1);
     }
   }
 }
-
 int main() {
     test_memset();
     reset();

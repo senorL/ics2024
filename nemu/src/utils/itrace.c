@@ -26,20 +26,20 @@ void init_iring() {
     buf_idex = 0;
 }
 
-void add_iring(Decode *s) {
-    char *p = iringbuf[buf_idex];
-    p += snprintf(p, 128, FMT_WORD ":", s->pc);
-    int ilen = s->snpc - s->pc;
-    uint8_t *inst = (uint8_t *)&s->isa.inst;
-    for (int i = ilen - 1; i >= 0; i --) {
-        p += snprintf(p, 4, " %02x", inst[i]);
-    }
-    p += snprintf(p, 2, " ");
-    int size = 128 - (p - iringbuf[buf_idex]);
-    void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
-    disassemble(p, size, MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
-    buf_idex = (buf_idex + 1) % IRINGBUF_NUM;
-}
+// void add_iring(Decode *s) {
+//     char *p = iringbuf[buf_idex];
+//     p += snprintf(p, 128, FMT_WORD ":", s->pc);
+//     int ilen = s->snpc - s->pc;
+//     uint8_t *inst = (uint8_t *)&s->isa.inst;
+//     for (int i = ilen - 1; i >= 0; i --) {
+//         p += snprintf(p, 4, " %02x", inst[i]);
+//     }
+//     p += snprintf(p, 2, " ");
+//     int size = 128 - (p - iringbuf[buf_idex]);
+//     void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
+//     disassemble(p, size, MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
+//     buf_idex = (buf_idex + 1) % IRINGBUF_NUM;
+// }
 
 void iring_trace() {
     if (buf_idex == 0) return;

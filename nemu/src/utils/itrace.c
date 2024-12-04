@@ -3,7 +3,8 @@
 #include <elf.h>
 
 #define IRINGBUF_NUM 16
-#define MAX_INST 2000
+#define MAX_INST 50
+#define MAX_SPACE 100
 
 Elf32_Sym *read_symbol();
 char *read_string();
@@ -89,7 +90,7 @@ void ftrace_call(Decode *s) {
     printf("%s\n", ftrace[ftrace_idex]);
     ftrace_idex++;
     space_num += 2;
-
+    space_num = space_num > MAX_SPACE ? MAX_SPACE : space_num;
 }
 
 void ftrace_ret(Decode *s) {

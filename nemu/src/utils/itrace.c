@@ -1,6 +1,7 @@
 #include <common.h>
 #include <cpu/decode.h>
 #include <elf.h>
+#include <device/map.h>
 
 #define IRINGBUF_NUM 16
 #define MAX_INST 50
@@ -120,4 +121,13 @@ void clean_header() {
     clean_section();
     free(symbol_table);
     free(string_table);
+}
+
+void print_dtrace(paddr_t addr, IOMap *map, int flag) {
+    if (flag == 1)
+        printf("Read device addr: %d name: %s\n", addr, map->name);
+    else if (flag == 0)
+        printf("Write device addr: %d name: %s\n", addr, map->name);
+
+
 }

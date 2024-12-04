@@ -22,6 +22,7 @@
 
 static uint8_t *io_space = NULL;
 static uint8_t *p_space = NULL;
+void print_dtrace(paddr_t addr, IOMap *map, int flag);
 
 uint8_t* new_space(int size) {
   uint8_t *p = p_space;
@@ -53,6 +54,8 @@ void init_map() {
 }
 
 word_t map_read(paddr_t addr, int len, IOMap *map) {
+  IFDEF(CONFIG_DTRACE, print_dtrace(addr, map, 1));
+
   assert(len >= 1 && len <= 8);
   check_bound(map, addr);
   paddr_t offset = addr - map->low;
@@ -62,6 +65,7 @@ word_t map_read(paddr_t addr, int len, IOMap *map) {
 }
 
 void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
+  IFDEF(CONFIG_DTRACE, print_dtrace(addr, map, 0));
   assert(len >= 1 && len <= 8);
   check_bound(map, addr);
   paddr_t offset = addr - map->low;

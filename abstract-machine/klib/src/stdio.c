@@ -41,6 +41,12 @@ int format_to_print(char *out, const char *fmt, va_list ap) {
           }
           break;
         }
+        case 'c': {
+          int val = va_arg(ap, int);
+          char c = (char)val;
+          out[len++] = c;
+          break;
+        }
         default:
           break;
       }

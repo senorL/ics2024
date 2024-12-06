@@ -23,7 +23,7 @@
  * This is useful when you use the `si' command.
  * You can modify this value as you want.
  */
-#define MAX_INST_TO_PRINT 10
+#define MAX_INST_TO_PRINT 1000
 
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
@@ -32,6 +32,8 @@ static bool g_print_step = false;
 
 void device_update();
 bool check_watchpoint();
+void iring_trace();
+void clean_header();
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
@@ -85,6 +87,7 @@ static void execute(uint64_t n) {
 }
 
 static void statistic() {
+  IFDEF(CONFIG_FTRACE, clean_header());
   IFNDEF(CONFIG_TARGET_AM, setlocale(LC_NUMERIC, ""));
 #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64
   Log("host time spent = " NUMBERIC_FMT " us", g_timer);
@@ -94,6 +97,7 @@ static void statistic() {
 }
 
 void assert_fail_msg() {
+  iring_trace();
   isa_reg_display();
   statistic();
 }
@@ -119,6 +123,8 @@ void cpu_exec(uint64_t n) {
     case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;
 
     case NEMU_END: case NEMU_ABORT:
+      if (nemu_state.halt_ret != 0)
+        iring_trace();
       Log("nemu: %s at pc = " FMT_WORD,
           (nemu_state.state == NEMU_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :

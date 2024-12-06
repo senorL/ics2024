@@ -5,9 +5,7 @@ void audio_test() {
     printf("WARNING: %s does not support audio\n", TOSTRING(__ARCH__));
     return;
   }
-
-  io_write(AM_AUDIO_CTRL, 8000, 1, 1024);
-
+  io_write(AM_AUDIO_CTRL, 8000, 2, 1024);
   extern uint8_t audio_payload, audio_payload_end;
   uint32_t audio_len = &audio_payload_end - &audio_payload;
   int nplay = 0;

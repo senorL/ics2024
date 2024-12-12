@@ -19,13 +19,10 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   /* TODO: Trigger an interrupt/exception with ``NO''.
    * Then return the address of the interrupt/exception vector.
    */
-  asm volatile("csrw mcause, %0" : : "r"(NO));
-  asm volatile("csrw mepc, %0" : : "r"(epc));
+  cpu.sr[mcause] = NO;
+  cpu.sr[mepc] = epc;
 
-  word_t mtvec_pc;
-  asm volatile("csrr %0, mtvec" : "=r"(mtvec_pc));
-
-  return mtvec_pc;
+  return cpu.sr[mtvec];
 }
 
 word_t isa_query_intr() {

@@ -18,12 +18,39 @@
 
 #include <common.h>
 
+#define mcause 0
+#define mepc 1
+#define mtvec 2
+#define mstatus 3
+
 static inline int check_reg_idx(int idx) {
   IFDEF(CONFIG_RT_CHECK, assert(idx >= 0 && idx < MUXDEF(CONFIG_RVE, 16, 32)));
   return idx;
 }
 
+static inline int check_sr_idx(int idx) {
+  switch (idx)
+  {
+  case 0x342:
+    return mcause;
+    break;
+  case 0x341:
+    return mepc;
+    break;
+  case 0x305:
+    return mtvec;
+    break;
+  case 0x300:
+    return mstatus;
+    break;
+  default:
+    printf("%x\n", idx);
+    assert(0);
+  }
+}
+
 #define gpr(idx) (cpu.gpr[check_reg_idx(idx)])
+#define sr(idx) (cpu.sr[check_sr_idx(idx)])
 
 static inline const char* reg_name(int idx) {
   extern const char* regs[];

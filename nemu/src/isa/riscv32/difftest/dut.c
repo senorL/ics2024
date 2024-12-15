@@ -18,24 +18,46 @@
 #include "../local-include/reg.h"
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
-  ref_r->sr[mstatus] = 0x1800;
-  bool tmp = true;
   for (int i = 0; i < 32; i++) {
-    if (ref_r->gpr[i] != cpu.gpr[i]){
-      tmp = false;
+    if (ref_r->gpr[i] != cpu.gpr[i]) {
       printf("ref_gpr %d: 0x%08x\n", i, ref_r->gpr[i]);
-      break;
+      printf("cpu_gpr %d: 0x%08x\n", i, cpu.gpr[i]);
+      return false;
     }
   }
+
   if (ref_r->pc != cpu.pc) {
-    tmp = false;
-  }
-  if (tmp == false) {
     printf("pc: 0x%08x\n", pc);
     printf("ref_pc: 0x%08x\n", ref_r->pc);
+    printf("cpu_pc: 0x%08x\n", cpu.pc);
+    return false;
   }
-  return tmp;
-}
 
+  if (ref_r->sr[mstatus] != cpu.sr[mstatus]) {
+    printf("ref_mstatus: 0x%08x\n", ref_r->sr[mstatus]);
+    printf("cpu_mstatus: 0x%08x\n", cpu.sr[mstatus]);
+    return false;
+  }
+
+  if (ref_r->sr[mcause] != cpu.sr[mcause]) {
+    printf("ref_mcause: 0x%08x\n", ref_r->sr[mcause]);
+    printf("cpu_mcause: 0x%08x\n", cpu.sr[mcause]);
+    return false;
+  }
+
+  if (ref_r->sr[mepc] != cpu.sr[mepc]) {
+    printf("ref_mepc: 0x%08x\n", ref_r->sr[mepc]);
+    printf("cpu_mepc: 0x%08x\n", cpu.sr[mepc]);
+    return false;
+  }
+
+  if (ref_r->sr[mtvec] != cpu.sr[mtvec]) {
+    printf("ref_mtvec: 0x%08x\n", ref_r->sr[mtvec]);
+    printf("cpu_mtvec: 0x%08x\n", cpu.sr[mtvec]);
+    return false;
+  }
+
+  return true;
+}
 void isa_difftest_attach() {
 }
